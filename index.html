@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+   
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f4f7f6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .btn-update {
+            background-color: #007bff;
+            display: none;
+        }
+
+        .btn-cancel {
+            background-color: #6c757d;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .action-btn {
+            padding: 5px 10px;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #message {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Student Management System</h2>
+
+        <div id="message"></div>
+
+        <!-- Form -->
+        <form id="student-form">
+            <input type="hidden" id="student-id">
+            <input type="text" id="name" placeholder="Student Name" required>
+            <input type="email" id="email" placeholder="Email Address" required>
+            <input type="text" id="course" placeholder="Course" required>
+            <input type="text" id="id" placeholder="id" required>
+            <input type="text" id="department" placeholder="department" required>
+
+
+
+
+            <button type="submit" id="btn-save">Add Student</button>
+            <button type="button" id="btn-update" class="btn-update">Update Student</button>
+            <button type="button" id="btn-cancel" class="btn-cancel">Cancel</button>
+        </form>
+
+        <!-- Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Course</th>
+                    <th>id</th>
+                    <th>department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="student-list">
+                
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        
+        const SUPABASE_URL = 'https://gecmsixonhstpxkjathy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlY21zaXhvbmhzdHB4a2phdGh5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDE0MjYyMiwiZXhwIjoyMTA1NzE4NjIyfQ.eiBZCAwCT0DDyVF7No2mMuQRbG1hAo6gpg3sp7T0QYg'
+
+        // Variable name 'supabaseClient' rakha hai taake conflict na ho
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 1. Form aur Input elements ko select karein
+        const studentForm = document.getElementById('student-form');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const courseInput = document.getElementById('course');
+        const id = document.getElementById('id');
+        const department = document.getElementById('department');
+
+
+
+
+
+
+        // 2. Form Submit event listener
+        studentForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+            const course = courseInput.value.trim();
+
+           
+            if (!name || !email || !course) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            // 3. Supabase 'students' table mein insert karein (supabaseClient use karein)
+            const { data, error } = await supabaseClient
+                .from('students')
+                .insert([{ name: name, email: email, course: course }]);
+
+            if (error) {
+                alert('Error saving data: ' + error.message);
+            } else {
+                alert('Student added successfully!');
+                studentForm.reset();
+                fetchStudents(); // Naya data load karein
+            }
+        });
+
+        // Table saaf karke naya data render karein
+        studentList.innerHTML = '';
+        data.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+      <td>${student.name}</td>
+      <td>${student.email}</td>
+      <td>${student.course}</td>
+      <td>
+        <button onclick="deleteStudent(${student.id})">Delete</button>
+      </td>
+    `;
+            studentList.appendChild(row);
+        });
+
+
+        // Page load hote hi data load karein
+        fetchStudents();
+
+
+        async function deleteStudent(id) {
+            if (confirm('Kya aap is student ko delete karna chahte hain?')) {
+                const { error } = await supabase
+                    .from('students')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    alert('Delete error: ' + error.message);
+                } else {
+                    alert('Student deleted successfully!');
+                    fetchStudents(); // Table update karein
+                }
+            }
+        }
+
+
+
+    </script>
+
+</body>
+
+</html>
