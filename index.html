@@ -187,9 +187,13 @@
             const name = nameInput.value.trim();
             const email = emailInput.value.trim();
             const course = courseInput.value.trim();
+            const course = idInput.value.trim();
+            const course = department Input.value.trim();
+
+
 
            
-            if (!name || !email || !course) {
+            if (!name || !email || !course || !id  || !department) {
                 alert('Please fill all fields!');
                 return;
             }
@@ -197,7 +201,7 @@
             // 3. Supabase 'students' table mein insert karein (supabaseClient use karein)
             const { data, error } = await supabaseClient
                 .from('students')
-                .insert([{ name: name, email: email, course: course }]);
+                .insert([{ name: name, email: email, course: course, id: id, department; department }]);
 
             if (error) {
                 alert('Error saving data: ' + error.message);
@@ -216,6 +220,10 @@
       <td>${student.name}</td>
       <td>${student.email}</td>
       <td>${student.course}</td>
+            <td>${student.id}</td>
+                  <td>${student.department}</td>
+
+
       <td>
         <button onclick="deleteStudent(${student.id})">Delete</button>
       </td>
